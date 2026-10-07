@@ -76,7 +76,9 @@ public class SimuladorFila extends EngineFrame {
     private double tempoParaSpawn;
     private double contadorTempoSpawn;
 
-    private List<String> bancadaMontagem;
+    private LinkedStack<String> pratoPilha; // Pilha real de montagem!
+    private Rectangle btnDesempilhar;        // Novo botão para operação POP
+    
     private List<BotaoIngrediente> botoesIngredientes;
     private Rectangle btnLimpar;
     private Rectangle btnEntregar;
@@ -99,7 +101,6 @@ public class SimuladorFila extends EngineFrame {
     public void create() {
         random = new Random();
         particulas = new ArrayList<>();
-        bancadaMontagem = new ArrayList<>();
 
         botoesIngredientes = new ArrayList<>();
         botoesIngredientes.add(new BotaoIngrediente(50, 530, 95, 45, "Pao", "[1] Pão", new Color(222, 184, 135)));
@@ -107,16 +108,17 @@ public class SimuladorFila extends EngineFrame {
         botoesIngredientes.add(new BotaoIngrediente(260, 530, 95, 45, "Queijo", "[3] Queijo", new Color(255, 215, 0)));
         botoesIngredientes.add(new BotaoIngrediente(365, 530, 95, 45, "Alface", "[4] Alface", new Color(60, 179, 113)));
         botoesIngredientes.add(new BotaoIngrediente(470, 530, 95, 45, "Bacon", "[5] Bacon", new Color(178, 34, 34)));
-
-        btnLimpar = new Rectangle(600, 530, 140, 45);
-        btnEntregar = new Rectangle(755, 530, 170, 45);
+        
+        btnDesempilhar = new Rectangle(580, 530, 115, 45); // Botão do POP
+        btnLimpar = new Rectangle(705, 530, 95, 45);       // Botão do CLEAR
+        btnEntregar = new Rectangle(810, 530, 145, 45);    // Botão de ENTREGA
 
         reiniciarJogo();
     }
 
     private void reiniciarJogo() {
         filaPedidos = new LinkedQueue<>(); // Usa o construtor da classe separada
-        bancadaMontagem.clear();
+        pratoPilha = new LinkedStack<>();
         particulas.clear();
         contadorIdPedido = 1;
         pontuacao = 0;
@@ -163,7 +165,12 @@ public class SimuladorFila extends EngineFrame {
         if (isKeyPressed(KEY_THREE) || isKeyPressed(KEY_KP_3)) adicionarIngrediente("Queijo");
         if (isKeyPressed(KEY_FOUR) || isKeyPressed(KEY_KP_4)) adicionarIngrediente("Alface");
         if (isKeyPressed(KEY_FIVE) || isKeyPressed(KEY_KP_5)) adicionarIngrediente("Bacon");
+        
+        if (isKeyPressed(KEY_BACKSPACE) || isKeyPressed(KEY_Z)) {
+            desempilharIngrediente();
+        }
 
+        
         if (isKeyPressed(KEY_C)) limparBancada();
         if (isKeyPressed(KEY_SPACE) || isKeyPressed(KEY_ENTER)) entregarPedido();
 
@@ -176,6 +183,9 @@ public class SimuladorFila extends EngineFrame {
             }
             if (CollisionUtils.checkCollisionPointRectangle(mousePos, btnLimpar)) limparBancada();
             if (CollisionUtils.checkCollisionPointRectangle(mousePos, btnEntregar)) entregarPedido();
+            if (CollisionUtils.checkCollisionPointRectangle(mousePos, btnDesempilhar)) {
+                  desempilharIngrediente();
+            }
         }
 
         for (int i = particulas.size() - 1; i >= 0; i--) {
@@ -207,11 +217,23 @@ public class SimuladorFila extends EngineFrame {
     }
 
     private void adicionarIngrediente(String ing) {
-        if (bancadaMontagem.size() < 7) bancadaMontagem.add(ing);
+        if (pratoPilha.getSize() < 7) {
+            pratoPilha.push(ing); // OPERAÇÃO PUSH DA PILHA!
+            definirFeedback("Empilhou (" + ing + ") no topo!", DARKGRAY);
+        }
+    }
+    
+    private void desempilharIngrediente() {
+        if (!pratoPilha.isEmpty()) {
+            String removido = pratoPilha.pop(); // OPERAÇÃO POP DA PILHA!
+            definirFeedback("Desempilhou (" + removido + ") do topo!", DARKGRAY);
+        } else {
+            definirFeedback("A pilha já está vazia!", RED);
+        }
     }
 
     private void limparBancada() {
-        bancadaMontagem.clear();
+        pratoPilha.clear(); // CLEAR DA PILHA
         definirFeedback("Bancada limpa!", DARKGRAY);
     }
 
@@ -224,12 +246,12 @@ public class SimuladorFila extends EngineFrame {
         // Chamada do peek da classe separada
         Pedido primeiro = filaPedidos.peek();
 
-        if (receitaConfere(bancadaMontagem, primeiro.receita)) {
+        if (receitaConfere(pratoPilha, primeiro.receita)) {
             // Chamada do dequeue da classe separada
             Pedido atendido = filaPedidos.dequeue();
             pontuacao += 150;
             clientesAtendidos++;
-            bancadaMontagem.clear();
+            pratoPilha.clear();
             particulas.add(new ParticulaPonto(getScreenWidth() / 2, 280, "+150 Pontos!", GREEN));
             definirFeedback("Pedido #" + atendido.id + " (" + atendido.nome + ") ATENDIDO COM SUCESSO!", GREEN);
 
@@ -241,10 +263,17 @@ public class SimuladorFila extends EngineFrame {
         }
     }
 
-    private boolean receitaConfere(List<String> montado, List<String> receita) {
-        if (montado.size() != receita.size()) return false;
-        for (int i = 0; i < montado.size(); i++) {
-            if (!montado.get(i).equals(receita.get(i))) return false;
+    private boolean receitaConfere(LinkedStack<String> prato, List<String> receita) {
+        if (prato.getSize() != receita.size()) return false;
+
+        // Coleta os elementos da pilha na ordem física (Base -> Topo)
+        List<String> camadasPrato = new ArrayList<>();
+        for (String ing : prato) {
+            camadasPrato.add(0, ing); // Insere no início para inverter a ordem LIFO
+        }
+
+        for (int i = 0; i < camadasPrato.size(); i++) {
+            if (!camadasPrato.get(i).equals(receita.get(i))) return false;
         }
         return true;
     }
@@ -261,7 +290,7 @@ public class SimuladorFila extends EngineFrame {
 
         fillRectangle(0, 0, getScreenWidth(), 45, new Color(245, 245, 245));
         drawLine(0, 45, getScreenWidth(), 45, LIGHTGRAY);
-        drawText("FAST-FOOD EXPRESS [TAD FILA - FIFO]", 20, 12, 20, BLACK);
+        drawText("Hamburgueria FIFO", 20, 12, 20, BLACK);
         drawText("Pontos: " + pontuacao, 640, 12, 20, BLUE);
         drawText("Atendidos: " + clientesAtendidos, 790, 12, 20, DARKGRAY);
 
@@ -277,8 +306,6 @@ public class SimuladorFila extends EngineFrame {
         for (ParticulaPonto p : particulas) {
             drawText(p.texto, p.x - measureText(p.texto, 18) / 2, p.y, 18, p.cor);
         }
-
-        drawFPS(10, 10);
 
         if (gameOver) {
             fillRectangle(0, 0, getScreenWidth(), getScreenHeight(), ColorUtils.colorAlpha(BLACK, 0.75));
@@ -367,32 +394,58 @@ public class SimuladorFila extends EngineFrame {
         fillRoundRectangle(50, 305, 875, 205, 15, new Color(250, 250, 250));
         drawRoundRectangle(50, 305, 875, 205, 15, LIGHTGRAY);
 
-        if (bancadaMontagem.isEmpty()) {
-            drawText("O prato está vazio. Adicione ingredientes com [1 a 5] ou os botões!", 150, 400, 16, GRAY);
+        if (pratoPilha.isEmpty()) {
+            drawText("Pilha vazia! Adicione ingredientes [1 a 5] para empilhar no prato.", 180, 400, 16, GRAY);
         } else {
-            int xIng = 120;
-            int yIng = 370;
-            for (int j = 0; j < bancadaMontagem.size(); j++) {
-                String ing = bancadaMontagem.get(j);
+            // Inverte para desenhar graficamente da base para cima
+            List<String> camadas = new ArrayList<>();
+            for (String ing : pratoPilha) {
+                camadas.add(0, ing);
+            }
+
+            int burgerX = 200;
+            int yCamada = 465; // Base do prato
+
+            // Desenho visual do hambúrguer empilhado
+            for (int i = 0; i < camadas.size(); i++) {
+                String ing = camadas.get(i);
                 Color cor = switch (ing) {
                     case "Pao" -> new Color(222, 184, 135);
-                    case "Carne" -> new Color(139, 69, 19);
+                    case "Carne" -> new Color(110, 50, 10);
                     case "Queijo" -> new Color(255, 215, 0);
                     case "Alface" -> new Color(60, 179, 113);
                     case "Bacon" -> new Color(178, 34, 34);
                     default -> LIGHTGRAY;
                 };
-                fillRoundRectangle(xIng, yIng, 110, 60, 8, cor);
-                drawRoundRectangle(xIng, yIng, 110, 60, 8, BLACK);
-                drawText((j + 1) + "º", xIng + 8, yIng + 8, 12, BLACK);
-                drawText(ing, xIng + 25, yIng + 32, 14, BLACK);
-                xIng += 125;
+
+                fillRoundRectangle(burgerX, yCamada, 180, 20, 6, cor);
+                drawRoundRectangle(burgerX, yCamada, 180, 20, 6, BLACK);
+                drawText(ing.toUpperCase(), burgerX + 60, yCamada + 3, 12, (ing.equals("Queijo") || ing.equals("Pao")) ? BLACK : WHITE);
+
+                yCamada -= 22; // Cada ingrediente sobe no eixo Y (empilhando)
+            }
+
+            // Ponteiro 'TOPO' desenhado ao lado da última camada adicionada
+            int yTopo = yCamada + 22;
+            drawText("<-- TOPO (top)", burgerX + 190, yTopo + 3, 13, RED);
+
+            // Lista esquemática dos nós da pilha
+            drawText("Estrutura da Pilha (LIFO):", 520, 320, 14, DARKGRAY);
+            int yTxt = 345;
+            int pos = pratoPilha.getSize();
+            for (String ing : pratoPilha) {
+                String label = (pos == pratoPilha.getSize() ? "[TOPO] " : "       ") + pos + "º: " + ing;
+                drawText(label, 520, yTxt, 14, (pos == pratoPilha.getSize()) ? RED : BLACK);
+                yTxt += 18;
+                pos--;
             }
         }
     }
 
     private void desenharBotoes() {
         Vector2 mousePos = getMousePositionPoint();
+
+        // Botões dos ingredientes
         for (BotaoIngrediente b : botoesIngredientes) {
             boolean hover = b.estaSobre(mousePos);
             fillRoundRectangle(b.bounds.x, b.bounds.y, b.bounds.width, b.bounds.height, 8, hover ? b.cor.brighter() : b.cor);
@@ -401,15 +454,23 @@ public class SimuladorFila extends EngineFrame {
             drawText(b.label, b.bounds.x + (b.bounds.width - largTexto) / 2, b.bounds.y + 16, 13, BLACK);
         }
 
-        boolean hoverLimpar = CollisionUtils.checkCollisionPointRectangle(mousePos, btnLimpar);
-        fillRoundRectangle(btnLimpar.x, btnLimpar.y, btnLimpar.width, btnLimpar.height, 8, hoverLimpar ? new Color(255, 150, 150) : new Color(255, 190, 190));
-        drawRoundRectangle(btnLimpar.x, btnLimpar.y, btnLimpar.width, btnLimpar.height, 8, BLACK);
-        drawText("[C] Limpar Prato", btnLimpar.x + 15, btnLimpar.y + 16, 14, BLACK);
+        // Botão Desempilhar (POP)
+        boolean hoverPop = CollisionUtils.checkCollisionPointRectangle(mousePos, btnDesempilhar);
+        fillRoundRectangle(btnDesempilhar.x, btnDesempilhar.y, btnDesempilhar.width, btnDesempilhar.height, 8, hoverPop ? new Color(255, 200, 100) : new Color(255, 220, 150));
+        drawRoundRectangle(btnDesempilhar.x, btnDesempilhar.y, btnDesempilhar.width, btnDesempilhar.height, 8, BLACK);
+        drawText("[BKSP] Pop", btnDesempilhar.x + 18, btnDesempilhar.y + 16, 14, BLACK);
 
+        // Botão Limpar (CLEAR)
+        boolean hoverLimpar = CollisionUtils.checkCollisionPointRectangle(mousePos, btnLimpar);
+        fillRoundRectangle(btnLimpar.x, btnLimpar.y, btnLimpar.width, btnLimpar.height, 8, hoverLimpar ? new Color(255, 140, 140) : new Color(255, 180, 180));
+        drawRoundRectangle(btnLimpar.x, btnLimpar.y, btnLimpar.width, btnLimpar.height, 8, BLACK);
+        drawText("[C] Limpar", btnLimpar.x + 12, btnLimpar.y + 16, 14, BLACK);
+
+        // Botão Entregar
         boolean hoverEntregar = CollisionUtils.checkCollisionPointRectangle(mousePos, btnEntregar);
         fillRoundRectangle(btnEntregar.x, btnEntregar.y, btnEntregar.width, btnEntregar.height, 8, hoverEntregar ? new Color(130, 230, 150) : new Color(160, 240, 180));
         drawRoundRectangle(btnEntregar.x, btnEntregar.y, btnEntregar.width, btnEntregar.height, 8, BLACK);
-        drawText("[ESPAÇO] Entregar (Peek)", btnEntregar.x + 10, btnEntregar.y + 16, 14, BLACK);
+        drawText("[ESPAÇO] Entregar", btnEntregar.x + 14, btnEntregar.y + 16, 14, BLACK);
     }
 
     private void desenharPonteiroComTerra(String label, int x, int y) {
@@ -429,4 +490,4 @@ public class SimuladorFila extends EngineFrame {
     public static void main(String[] args) {
         new SimuladorFila();
     }
-}
+}   
