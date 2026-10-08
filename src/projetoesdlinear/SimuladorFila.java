@@ -15,7 +15,7 @@ import java.util.Random;
  */
 public class SimuladorFila extends EngineFrame {
 
-    // --- MODELO DO PEDIDO ---
+    //  MODELO DO PEDIDO 
     private static class Pedido {
         int id;
         String nome;
@@ -68,19 +68,18 @@ public class SimuladorFila extends EngineFrame {
         }
     }
 
-    // --- VARIÁVEIS DO JOGO ---
-    private LinkedQueue<Pedido> filaPedidos; // Instância da nossa nova classe separada!
+    // VARIÁVEIS DO JOGO
+    private LinkedQueue<Pedido> filaPedidos;
     private final int CAPACIDADE_MAXIMA = 5;
     private int contadorIdPedido;
 
     private double tempoParaSpawn;
     private double contadorTempoSpawn;
 
-    private LinkedStack<String> pratoPilha; // Pilha real de montagem!
-    private Rectangle btnDesempilhar;        // Novo botão para operação POP
-    
+    private LinkedStack<String> pratoPilha; 
+        
     private List<BotaoIngrediente> botoesIngredientes;
-    private Rectangle btnLimpar;
+    private Rectangle btnDesempilhar; 
     private Rectangle btnEntregar;
 
     private int pontuacao;
@@ -94,7 +93,7 @@ public class SimuladorFila extends EngineFrame {
     private Random random;
 
     public SimuladorFila() {
-        super(980, 680, "Fast-Food Express - Simulador de Fila", 60, true);
+        super(980, 680, "Hamburgueria FIFO - Simulador de Fila e Pilha", 60, true);
     }
 
     @Override
@@ -109,15 +108,14 @@ public class SimuladorFila extends EngineFrame {
         botoesIngredientes.add(new BotaoIngrediente(365, 530, 95, 45, "Alface", "[4] Alface", new Color(60, 179, 113)));
         botoesIngredientes.add(new BotaoIngrediente(470, 530, 95, 45, "Bacon", "[5] Bacon", new Color(178, 34, 34)));
         
-        btnDesempilhar = new Rectangle(580, 530, 115, 45); // Botão do POP
-        btnLimpar = new Rectangle(705, 530, 95, 45);       // Botão do CLEAR
-        btnEntregar = new Rectangle(810, 530, 145, 45);    // Botão de ENTREGA
+        btnDesempilhar = new Rectangle(690, 530, 115, 45);
+        btnEntregar = new Rectangle(810, 530, 145, 45);
 
         reiniciarJogo();
     }
 
     private void reiniciarJogo() {
-        filaPedidos = new LinkedQueue<>(); // Usa o construtor da classe separada
+        filaPedidos = new LinkedQueue<>();
         pratoPilha = new LinkedStack<>();
         particulas.clear();
         contadorIdPedido = 1;
@@ -125,7 +123,7 @@ public class SimuladorFila extends EngineFrame {
         clientesAtendidos = 0;
         tempoParaSpawn = 5.0;
         contadorTempoSpawn = 0;
-        feedbackMensagem = "Atenda o primeiro cliente da fila (start/início)!";
+        feedbackMensagem = "Atenda o primeiro cliente da fila!";
         corFeedback = BLACK;
         feedbackTempo = 3.0;
         gameOver = false;
@@ -171,7 +169,6 @@ public class SimuladorFila extends EngineFrame {
         }
 
         
-        if (isKeyPressed(KEY_C)) limparBancada();
         if (isKeyPressed(KEY_SPACE) || isKeyPressed(KEY_ENTER)) entregarPedido();
 
         if (isMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
@@ -181,7 +178,6 @@ public class SimuladorFila extends EngineFrame {
                     break;
                 }
             }
-            if (CollisionUtils.checkCollisionPointRectangle(mousePos, btnLimpar)) limparBancada();
             if (CollisionUtils.checkCollisionPointRectangle(mousePos, btnEntregar)) entregarPedido();
             if (CollisionUtils.checkCollisionPointRectangle(mousePos, btnDesempilhar)) {
                   desempilharIngrediente();
@@ -211,30 +207,26 @@ public class SimuladorFila extends EngineFrame {
             case 1 -> p = new Pedido(contadorIdPedido++, "X-Salada", List.of("Pao", "Carne", "Queijo", "Alface", "Pao"));
             case 2 -> p = new Pedido(contadorIdPedido++, "X-Bacon", List.of("Pao", "Carne", "Queijo", "Bacon", "Pao"));
             case 3 -> p = new Pedido(contadorIdPedido++, "X-Duplo", List.of("Pao", "Carne", "Carne", "Queijo", "Pao"));
+            case 4 -> p = new Pedido(contadorIdPedido++, "X-Kid", List.of("Pao", "Carne", "Pao"));
             default -> p = new Pedido(contadorIdPedido++, "X-Tudo", List.of("Pao", "Carne", "Queijo", "Alface", "Bacon", "Pao"));
         }
-        filaPedidos.enqueue(p); // Chamada do enqueue da classe separada
+        filaPedidos.enqueue(p);
     }
 
     private void adicionarIngrediente(String ing) {
         if (pratoPilha.getSize() < 7) {
-            pratoPilha.push(ing); // OPERAÇÃO PUSH DA PILHA!
+            pratoPilha.push(ing);
             definirFeedback("Empilhou (" + ing + ") no topo!", DARKGRAY);
         }
     }
     
     private void desempilharIngrediente() {
         if (!pratoPilha.isEmpty()) {
-            String removido = pratoPilha.pop(); // OPERAÇÃO POP DA PILHA!
+            String removido = pratoPilha.pop();
             definirFeedback("Desempilhou (" + removido + ") do topo!", DARKGRAY);
         } else {
             definirFeedback("A pilha já está vazia!", RED);
         }
-    }
-
-    private void limparBancada() {
-        pratoPilha.clear(); // CLEAR DA PILHA
-        definirFeedback("Bancada limpa!", DARKGRAY);
     }
 
     private void entregarPedido() {
@@ -243,11 +235,9 @@ public class SimuladorFila extends EngineFrame {
             return;
         }
 
-        // Chamada do peek da classe separada
         Pedido primeiro = filaPedidos.peek();
 
         if (receitaConfere(pratoPilha, primeiro.receita)) {
-            // Chamada do dequeue da classe separada
             Pedido atendido = filaPedidos.dequeue();
             pontuacao += 150;
             clientesAtendidos++;
@@ -264,12 +254,13 @@ public class SimuladorFila extends EngineFrame {
     }
 
     private boolean receitaConfere(LinkedStack<String> prato, List<String> receita) {
-        if (prato.getSize() != receita.size()) return false;
+        if (prato.getSize() != receita.size()){
+            return false;
+        }
 
-        // Coleta os elementos da pilha na ordem física (Base -> Topo)
         List<String> camadasPrato = new ArrayList<>();
         for (String ing : prato) {
-            camadasPrato.add(0, ing); // Insere no início para inverter a ordem LIFO
+            camadasPrato.add(0, ing); 
         }
 
         for (int i = 0; i < camadasPrato.size(); i++) {
@@ -316,12 +307,12 @@ public class SimuladorFila extends EngineFrame {
             drawText("A fila acumulou muitos clientes!", 310, 280, 18, BLACK);
             drawText("Clientes Atendidos: " + clientesAtendidos, 370, 320, 20, BLUE);
             drawText("Pontuação Final: " + pontuacao, 385, 360, 20, GOLD);
-            drawText("Pressione [R] para reiniciar o turno", 330, 420, 18, DARKGREEN);
+            drawText("Pressione [R] para reiniciar o turno", 290, 420, 18, DARKGREEN);
         }
     }
 
     private void desenharEstruturaFila() {
-        drawText("ESTEIRA DE PEDIDOS (FILA ENCADEADA SEPARADA):", 20, 58, 16, BLACK);
+        drawText("ESTEIRA DE PEDIDOSs:", 20, 58, 16, BLACK);
         drawText("Capacidade: " + filaPedidos.getSize() + " / " + CAPACIDADE_MAXIMA, 780, 58, 16,
                 filaPedidos.getSize() >= CAPACIDADE_MAXIMA ? RED : DARKGRAY);
 
@@ -331,11 +322,10 @@ public class SimuladorFila extends EngineFrame {
         int boxH = 135;
         int espaco = 45;
 
-        // Usa os ponteiros start/end expostos pela classe LinkedQueue
         if (filaPedidos.isEmpty()) {
-            drawText("Fila Vazia!", 380, 140, 22, DARKGRAY);
-            desenharPonteiroComTerra("início (start)", 280, 120);
-            desenharPonteiroComTerra("fim (end)", 480, 120);
+            drawText("Fila Vazia!", 380, 80, 22, DARKGRAY);
+            desenharPonteiroComTerra("início", 280, 120);
+            desenharPonteiroComTerra("fim", 480, 120);
             return;
         }
 
@@ -350,7 +340,7 @@ public class SimuladorFila extends EngineFrame {
                 drawRoundRectangle(x, yBox, boxW, boxH, 10, GOLD);
                 fillRoundRectangle(x, yBox - 22, boxW, 20, 6, GOLD);
                 drawText("ATENDER AGORA", x + 10, yBox - 18, 12, BLACK);
-                drawText("início (start)", x + 20, yBox + boxH + 8, 13, RED);
+                drawText("início", x + 20, yBox + boxH + 8, 13, RED);
                 drawLine(x + boxW / 2, yBox + boxH + 6, x + boxW / 2, yBox + boxH, RED);
                 desenharSeta(x + boxW / 2, yBox + boxH, 6, 90, RED);
             } else {
@@ -360,7 +350,7 @@ public class SimuladorFila extends EngineFrame {
             }
 
             if (atual.next == null) {
-                drawText("fim (end)", x + 30, yBox - 20, 13, BLUE);
+                drawText("fim", x + 30, yBox - 20, 13, BLUE);
                 drawLine(x + boxW / 2, yBox - 6, x + boxW / 2, yBox, BLUE);
                 desenharSeta(x + boxW / 2, yBox, 6, 270, BLUE);
             }
@@ -395,18 +385,16 @@ public class SimuladorFila extends EngineFrame {
         drawRoundRectangle(50, 305, 875, 205, 15, LIGHTGRAY);
 
         if (pratoPilha.isEmpty()) {
-            drawText("Pilha vazia! Adicione ingredientes [1 a 5] para empilhar no prato.", 180, 400, 16, GRAY);
+            drawText("Bancada vazia! Adicione ingredientes para empilhar no prato.", 180, 400, 16, GRAY);
         } else {
-            // Inverte para desenhar graficamente da base para cima
             List<String> camadas = new ArrayList<>();
             for (String ing : pratoPilha) {
                 camadas.add(0, ing);
             }
 
             int burgerX = 200;
-            int yCamada = 465; // Base do prato
+            int yCamada = 465;
 
-            // Desenho visual do hambúrguer empilhado
             for (int i = 0; i < camadas.size(); i++) {
                 String ing = camadas.get(i);
                 Color cor = switch (ing) {
@@ -422,15 +410,13 @@ public class SimuladorFila extends EngineFrame {
                 drawRoundRectangle(burgerX, yCamada, 180, 20, 6, BLACK);
                 drawText(ing.toUpperCase(), burgerX + 60, yCamada + 3, 12, (ing.equals("Queijo") || ing.equals("Pao")) ? BLACK : WHITE);
 
-                yCamada -= 22; // Cada ingrediente sobe no eixo Y (empilhando)
+                yCamada -= 22;
             }
 
-            // Ponteiro 'TOPO' desenhado ao lado da última camada adicionada
             int yTopo = yCamada + 22;
-            drawText("<-- TOPO (top)", burgerX + 190, yTopo + 3, 13, RED);
+            drawText("<-- TOPO", burgerX + 190, yTopo + 3, 13, RED);
 
-            // Lista esquemática dos nós da pilha
-            drawText("Estrutura da Pilha (LIFO):", 520, 320, 14, DARKGRAY);
+            drawText("Estrutura da Pilha:", 520, 320, 14, DARKGRAY);
             int yTxt = 345;
             int pos = pratoPilha.getSize();
             for (String ing : pratoPilha) {
@@ -445,7 +431,6 @@ public class SimuladorFila extends EngineFrame {
     private void desenharBotoes() {
         Vector2 mousePos = getMousePositionPoint();
 
-        // Botões dos ingredientes
         for (BotaoIngrediente b : botoesIngredientes) {
             boolean hover = b.estaSobre(mousePos);
             fillRoundRectangle(b.bounds.x, b.bounds.y, b.bounds.width, b.bounds.height, 8, hover ? b.cor.brighter() : b.cor);
@@ -454,23 +439,15 @@ public class SimuladorFila extends EngineFrame {
             drawText(b.label, b.bounds.x + (b.bounds.width - largTexto) / 2, b.bounds.y + 16, 13, BLACK);
         }
 
-        // Botão Desempilhar (POP)
         boolean hoverPop = CollisionUtils.checkCollisionPointRectangle(mousePos, btnDesempilhar);
         fillRoundRectangle(btnDesempilhar.x, btnDesempilhar.y, btnDesempilhar.width, btnDesempilhar.height, 8, hoverPop ? new Color(255, 200, 100) : new Color(255, 220, 150));
         drawRoundRectangle(btnDesempilhar.x, btnDesempilhar.y, btnDesempilhar.width, btnDesempilhar.height, 8, BLACK);
         drawText("[BKSP] Pop", btnDesempilhar.x + 18, btnDesempilhar.y + 16, 14, BLACK);
 
-        // Botão Limpar (CLEAR)
-        boolean hoverLimpar = CollisionUtils.checkCollisionPointRectangle(mousePos, btnLimpar);
-        fillRoundRectangle(btnLimpar.x, btnLimpar.y, btnLimpar.width, btnLimpar.height, 8, hoverLimpar ? new Color(255, 140, 140) : new Color(255, 180, 180));
-        drawRoundRectangle(btnLimpar.x, btnLimpar.y, btnLimpar.width, btnLimpar.height, 8, BLACK);
-        drawText("[C] Limpar", btnLimpar.x + 12, btnLimpar.y + 16, 14, BLACK);
-
-        // Botão Entregar
         boolean hoverEntregar = CollisionUtils.checkCollisionPointRectangle(mousePos, btnEntregar);
         fillRoundRectangle(btnEntregar.x, btnEntregar.y, btnEntregar.width, btnEntregar.height, 8, hoverEntregar ? new Color(130, 230, 150) : new Color(160, 240, 180));
         drawRoundRectangle(btnEntregar.x, btnEntregar.y, btnEntregar.width, btnEntregar.height, 8, BLACK);
-        drawText("[ESPAÇO] Entregar", btnEntregar.x + 14, btnEntregar.y + 16, 14, BLACK);
+        drawText("[SPC] Entregar", btnEntregar.x + 14, btnEntregar.y + 16, 14, BLACK);
     }
 
     private void desenharPonteiroComTerra(String label, int x, int y) {

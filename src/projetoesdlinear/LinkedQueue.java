@@ -3,10 +3,6 @@ package projetoesdlinear;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * TAD Fila (Queue / FIFO) com estrutura encadeada simples.
- * Extraído para separar a lógica de Estruturas de Dados do Jogo.
- */
 public class LinkedQueue<Type> implements Iterable<Type> {
 
     public static class Node<Type> {
@@ -19,8 +15,8 @@ public class LinkedQueue<Type> implements Iterable<Type> {
         }
     }
 
-    public Node<Type> start; // Início / Cabeça da Fila
-    public Node<Type> end;   // Fim / Cauda da Fila
+    public Node<Type> start; 
+    public Node<Type> end; 
     private int size;
 
     public LinkedQueue() {
@@ -29,7 +25,7 @@ public class LinkedQueue<Type> implements Iterable<Type> {
         this.size = 0;
     }
 
-    // Operação enqueue (enfileirar no fim)
+    // Operação enfileirar no fim
     public void enqueue(Type value) {
         Node<Type> newNode = new Node<>(value);
         if (isEmpty()) {
@@ -42,7 +38,7 @@ public class LinkedQueue<Type> implements Iterable<Type> {
         size++;
     }
 
-    // Operação dequeue (desenfileirar do início)
+    // Operação desenfileirar do início
     public Type dequeue() {
         if (isEmpty()) {
             return null;
@@ -56,7 +52,6 @@ public class LinkedQueue<Type> implements Iterable<Type> {
         return val;
     }
 
-    // Operação peek (consultar o início)
     public Type peek() {
         if (isEmpty()) {
             return null;
@@ -78,7 +73,6 @@ public class LinkedQueue<Type> implements Iterable<Type> {
         return size;
     }
 
-    // Permite varrer a fila em loops for-each (usado na hora de desenhar a esteira)
     @Override
     public Iterator<Type> iterator() {
         return new Iterator<Type>() {

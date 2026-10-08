@@ -3,15 +3,11 @@ package projetoesdlinear;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * TAD Pilha (Stack / LIFO) encadeada para montagem do hambúrguer.
- * Baseada na especificação da Aula 02 do Prof. Dr. David Buzatto.
- */
 public class LinkedStack<Type> implements Iterable<Type> {
 
     public static class Node<Type> {
         public Type value;
-        public Node<Type> previous; // Aponta para o nó de baixo
+        public Node<Type> previous;
 
         public Node(Type value, Node<Type> previous) {
             this.value = value;
@@ -19,7 +15,7 @@ public class LinkedStack<Type> implements Iterable<Type> {
         }
     }
 
-    public Node<Type> top; // Topo da pilha
+    public Node<Type> top;
     private int size;
 
     public LinkedStack() {
@@ -27,13 +23,11 @@ public class LinkedStack<Type> implements Iterable<Type> {
         this.size = 0;
     }
 
-    // push: empilha no topo
     public void push(Type value) {
         top = new Node<>(value, top);
         size++;
     }
 
-    // pop: desempilha o elemento do topo
     public Type pop() {
         if (isEmpty()) {
             return null;
@@ -44,7 +38,6 @@ public class LinkedStack<Type> implements Iterable<Type> {
         return val;
     }
 
-    // peek: consulta o elemento do topo sem remover
     public Type peek() {
         if (isEmpty()) {
             return null;
