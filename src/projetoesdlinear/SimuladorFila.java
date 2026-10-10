@@ -10,12 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Fast-Food Express - Jogo principal utilizando a Fila Separada (LinkedQueue).
- */
 public class SimuladorFila extends EngineFrame {
 
-    //  MODELO DO PEDIDO 
     private static class Pedido {
         int id;
         String nome;
@@ -68,7 +64,6 @@ public class SimuladorFila extends EngineFrame {
         }
     }
 
-    // VARIÁVEIS DO JOGO
     private LinkedQueue<Pedido> filaPedidos;
     private final int CAPACIDADE_MAXIMA = 5;
     private int contadorIdPedido;
@@ -245,7 +240,9 @@ public class SimuladorFila extends EngineFrame {
             particulas.add(new ParticulaPonto(getScreenWidth() / 2, 280, "+150 Pontos!", GREEN));
             definirFeedback("Pedido #" + atendido.id + " (" + atendido.nome + ") ATENDIDO COM SUCESSO!", GREEN);
 
-            if (tempoParaSpawn > 2.5) tempoParaSpawn -= 0.15;
+            if (tempoParaSpawn > 2.5) {
+                tempoParaSpawn -= 0.15;
+            }
         } else {
             pontuacao = Math.max(0, pontuacao - 40);
             particulas.add(new ParticulaPonto(getScreenWidth() / 2, 280, "-40 (Incorreto)", RED));
